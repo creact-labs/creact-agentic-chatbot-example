@@ -1,0 +1,36 @@
+{
+  "name": "@creact-labs/agentic-chatbot-example",
+  "version": "0.1.0",
+  "description": "AI chat agent built with CReact",
+  "type": "module",
+  "main": "app.tsx",
+  "scripts": {
+    "start": "creact app.tsx",
+    "dev": "creact --watch app.tsx",
+    "cleanup": "rm -rf .creact-state && echo 'Cleared .creact-state'",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "creact",
+    "ai",
+    "agent",
+    "chatbot",
+    "reactive",
+    "openai"
+  ],
+  "author": "Daniel Coutinho Ribeiro <dcoutinho.96@gmail.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@creact-labs/creact": "^0.2.8",
+    "dotenv": "^17.2.3",
+    "duck-duck-scrape": "^2.2.7",
+    "express": "^5.2.1",
+    "openai": "^6.17.0",
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.2.0",
+    "typescript": "^5.9.3"
+  }
+}
