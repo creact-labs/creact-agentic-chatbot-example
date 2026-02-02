@@ -22,6 +22,9 @@ export function App() {
                     const modelName = model.model();
                     if (!modelName) return null;
 
+                    const memoryId = memory.id();
+                    if (!memoryId) return null;
+
                     // Use untrack to read messages without creating reactive dependency
                     // This prevents re-render when SaveMessages updates memory
                     const existingMessages = untrack(() => memory.messages()) || [];
@@ -34,14 +37,35 @@ export function App() {
                         <Message key={`user-${pending.id}`} role="user" content={pending.content}>
                           {(userMsg) => {
                             // Filter out any messages with null/undefined content (from incomplete hydration)
+                            // But keep assistant messages with tool_calls even if content is null
+                            // Also keep tool messages (they have content but we want to be explicit)
                             const validMessages = existingMessages.filter(
-                              (m: any) => m && m.role && m.content
+                              (m: any) => {
+                                if (!m || !m.role) return false;
+                                // Keep messages with content
+                                if (m.content) return true;
+                                // Keep assistant messages with tool_calls (even if content is null)
+                                if (m.role === 'assistant' && m.tool_calls && m.tool_calls.length > 0) return true;
+                                // Keep tool messages
+                                if (m.role === 'tool') return true;
+                                return false;
+                              }
                             );
+                            
+                            // Debug: log message structure to verify filter is working
+                            console.log(`[App] Filtered ${validMessages.length} valid messages from ${existingMessages.length} existing messages`);
+                            if (validMessages.length > 0) {
+                              console.log(`[App] First valid message:`, JSON.stringify(validMessages[0], null, 2).slice(0, 200));
+                            }
+                            
                             const allMessages = [
                               { role: 'system', content: 'You are a helpful assistant. Always respond using valid Markdown formatting. Use bullet points, numbered lists, headers, bold, italic, and code blocks where appropriate.' },
                               ...validMessages,
                               { role: 'user', content: pending.content }
                             ];
+                            
+                            // Debug: verify message order before sending to OpenAI
+                            console.log(`[App] Sending ${allMessages.length} messages to OpenAI. First 3 roles:`, allMessages.slice(0, 3).map(m => m.role));
 
                             return (
                               <Completion
@@ -49,8 +73,15 @@ export function App() {
                                 model={modelName}
                                 messages={allMessages}
                               >
-                                {(responseContent) => {
+                                {(responseContent, conversationHistory) => {
                                   console.log(`[App] Got response, creating assistant message...`);
+                                  // Extract only NEW messages (those not in allMessages)
+                                  const inputMessageCount = allMessages.length;
+                                  const newMessages = conversationHistory?.slice(inputMessageCount) || [
+                                    { role: 'user', content: pending.content },
+                                    { role: 'assistant', content: responseContent }
+                                  ];
+                                  
                                   return (
                                     <Message key={`assistant-${pending.id}`} role="assistant" content={responseContent}>
                                       {(assistantMsg) => {
@@ -59,12 +90,9 @@ export function App() {
                                         return (
                                           <>
                                             <SaveMessages
-                                              memoryId={memory.id()}
+                                              memoryId={memoryId}
                                               currentMessages={existingMessages}
-                                              newMessages={[
-                                                { role: 'user', content: pending.content },
-                                                { role: 'assistant', content: responseContent }
-                                              ]}
+                                              newMessages={newMessages}
                                             />
                                             <SendResponse
                                               handlerId={chat.id()}

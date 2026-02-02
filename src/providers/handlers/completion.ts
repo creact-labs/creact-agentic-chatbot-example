@@ -54,9 +54,18 @@ export function handleCompletion(node: InstanceNode, emitter: EventEmitter): voi
         const content = message.content || '';
         console.log(`[Provider] Completion: got response: ${content.slice(0, 50)}...`);
 
+        // Add final assistant message to conversation history
+        currentMessages.push(message);
+
         emitter.emit('outputsChanged', {
           resourceName: nodeId,
-          outputs: { id: nodeId, status: 'complete', response: content, requestId },
+          outputs: { 
+            id: nodeId, 
+            status: 'complete', 
+            response: content, 
+            requestId,
+            conversationHistory: currentMessages
+          },
           timestamp: Date.now(),
         });
         break;

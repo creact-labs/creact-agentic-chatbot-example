@@ -6,7 +6,7 @@ export interface CompletionProps {
   requestId: string;
   model: string;
   messages: Array<{ role: string; content: string }>;
-  children: (response: string) => JSXElement | null;
+  children: (response: string, conversationHistory?: Array<any>) => JSXElement | null;
 }
 
 export function Completion({ requestId, model, messages, children }: CompletionProps) {
@@ -21,6 +21,7 @@ export function Completion({ requestId, model, messages, children }: CompletionP
   });
 
   const response = outputs.response();
+  const conversationHistory = outputs.conversationHistory?.();
   if (!response) return null;
-  return children(response);
+  return children(response, conversationHistory);
 }
