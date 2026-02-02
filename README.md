@@ -1,4 +1,4 @@
-# @creact-labs/agentic-chatbot-example
+# creact-agentic-chatbot-example
 
 A chat agent built with [CReact](https://github.com/creact-labs/creact).
 
