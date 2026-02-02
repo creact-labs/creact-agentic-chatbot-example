@@ -3,14 +3,9 @@ export interface ChatHandlerProps {
   path: string;
 }
 
-export interface PendingMessage {
-  id: string;
-  content: string;
-}
-
 export interface ChatHandlerOutputs {
   id: string;
-  pending: PendingMessage | null;
+  pending: string | null;
 }
 
 export class ChatHandler {

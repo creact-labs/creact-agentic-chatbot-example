@@ -1,6 +1,5 @@
 export interface ChatResponseProps {
   handlerId: string;
-  messageId: string;
   content: string;
 }
 
@@ -9,5 +8,14 @@ export interface ChatResponseOutputs {
 }
 
 export class ChatResponse {
-  constructor(public props: ChatResponseProps) {}
+  readonly props: ChatResponseProps;
+  outputs: ChatResponseOutputs = { sent: false };
+
+  constructor(props: ChatResponseProps) {
+    this.props = props;
+  }
+
+  setOutputs(outputs: Partial<ChatResponseOutputs>) {
+    this.outputs = { ...this.outputs, ...outputs };
+  }
 }

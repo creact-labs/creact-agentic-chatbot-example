@@ -1,11 +1,11 @@
 import type { InstanceNode } from '@creact-labs/creact';
 import express, { type Express, type Response } from 'express';
 import path from 'path';
-import type { EventEmitter } from 'events';
+import { EventEmitter } from 'events';
 
 // Runtime registries
 const serverInstances = new Map<string, { app: Express; url: string }>();
-const handlerInstances = new Map<string, { pending: any; waitingRes: Response | null }>();
+const handlerInstances = new Map<string, { pending: string | null; waitingRes: Response | null }>();
 
 export function handleHttpServer(node: InstanceNode): void {
   const id = node.id;
@@ -49,9 +49,8 @@ export function handleChatHandler(node: InstanceNode, emitter: EventEmitter): vo
     server.app.post(routePath, (req, res) => {
       console.log(`[Provider] POST ${routePath} received:`, req.body);
       const handler = handlerInstances.get(id)!;
-      const messageId = Date.now().toString();
 
-      handler.pending = { id: messageId, content: req.body.message };
+      handler.pending = req.body.message;
       handler.waitingRes = res;
 
       console.log(`[Provider] Emitting outputsChanged for ${id}`);
@@ -68,33 +67,28 @@ export function handleChatHandler(node: InstanceNode, emitter: EventEmitter): vo
 }
 
 export function handleChatResponse(node: InstanceNode, emitter: EventEmitter): void {
-  const { handlerId, messageId, content } = node.props;
-  console.log(`[Provider] ChatResponse materialize: handlerId=${handlerId}, messageId=${messageId}, content=${content?.slice(0, 50)}`);
+  const { handlerId, content } = node.props;
+  console.log(`[Provider] ChatResponse materialize: handlerId=${handlerId}, content=${content?.slice(0, 50)}`);
   if (!handlerId || !content) return;
 
-  // Idempotency check
-  if (node.outputs?.sent && node.outputs?.messageId === messageId) {
+  // Use node.id for idempotency - CReact ensures unique IDs
+  if (node.outputs?.sent) {
     return;
   }
 
   const handler = handlerInstances.get(handlerId);
   if (!handler?.waitingRes) return;
 
-  if (handler.pending?.id === messageId) {
-    console.log(`[Provider] ChatResponse: sending response`);
-    handler.waitingRes.json({ response: content });
-    handler.pending = null;
-    handler.waitingRes = null;
+  console.log(`[Provider] ChatResponse: sending response`);
+  handler.waitingRes.json({ response: content });
+  handler.waitingRes = null;
+  handler.pending = null;
 
-    node.setOutputs({ sent: true, messageId });
+  node.setOutputs({ sent: true });
 
-    emitter.emit('outputsChanged', {
-      resourceName: handlerId,
-      outputs: { id: handlerId, pending: null },
-      timestamp: Date.now(),
-    });
-  } else {
-    console.log(`[Provider] ChatResponse: messageId mismatch, pending=${handler.pending?.id}, got=${messageId}`);
-    node.setOutputs({ sent: true, messageId });
-  }
+  emitter.emit('outputsChanged', {
+    resourceName: handlerId,
+    outputs: { id: handlerId, pending: null },
+    timestamp: Date.now(),
+  });
 }

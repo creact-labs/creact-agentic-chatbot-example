@@ -1,12 +1,10 @@
-import { useInstance } from '@creact-labs/creact';
-import { ChatResponse } from './ChatResponse.construct';
+import { useInstance, ChatResponse } from '@creact-labs/creact';
 
-export function SendResponse({ handlerId, messageId, content }: {
+export function SendResponse({ handlerId, content }: {
   handlerId: string | undefined;
-  messageId: string | undefined;
   content: string | undefined;
 }) {
-  console.log('[SendResponse] rendering:', { handlerId, messageId, content: content?.slice(0, 30) });
-  useInstance(ChatResponse, { handlerId, messageId, content });
+  console.log('[SendResponse] rendering:', { handlerId, content: content?.slice(0, 30) });
+  useInstance(ChatResponse, { handlerId, content });
   return null;
 }

@@ -4,7 +4,7 @@ import { Chat, Model, SendResponse } from './chat';
 import { Memory, SaveMessages } from './memory';
 import { Message } from './message';
 import { Completion } from './completion';
-import { ToolProvider, DuckDuckGo, Browser } from './tools';
+import { ToolProvider, DuckDuckGo, Browser, DockerTools, TeamTools } from './tools';
 
 export function App() {
   return (
@@ -17,7 +17,7 @@ export function App() {
                 <Memory>
                   {(memory) => {
                     const pending = chat.pending();
-                    if (!pending?.id || !pending?.content) return null;
+                    if (!pending) return null;
 
                     const modelName = model.model();
                     if (!modelName) return null;
@@ -34,7 +34,9 @@ export function App() {
                       <ToolProvider>
                         <DuckDuckGo />
                         <Browser />
-                        <Message key={`user-${pending.id}`} role="user" content={pending.content}>
+                        <DockerTools />
+                        <TeamTools />
+                        <Message key={`user-${chat.id()}`} role="user" content={pending}>
                           {(userMsg) => {
                             // Filter out any messages with null/undefined content (from incomplete hydration)
                             // But keep assistant messages with tool_calls even if content is null
@@ -61,7 +63,7 @@ export function App() {
                             const allMessages = [
                               { role: 'system', content: 'You are a helpful assistant. Always respond using valid Markdown formatting. Use bullet points, numbered lists, headers, bold, italic, and code blocks where appropriate.' },
                               ...validMessages,
-                              { role: 'user', content: pending.content }
+                              { role: 'user', content: pending }
                             ];
                             
                             // Debug: verify message order before sending to OpenAI
@@ -69,7 +71,7 @@ export function App() {
 
                             return (
                               <Completion
-                                requestId={pending.id}
+                                requestId={chat.id()}
                                 model={modelName}
                                 messages={allMessages}
                               >
@@ -78,15 +80,15 @@ export function App() {
                                   // Extract only NEW messages (those not in allMessages)
                                   const inputMessageCount = allMessages.length;
                                   const newMessages = conversationHistory?.slice(inputMessageCount) || [
-                                    { role: 'user', content: pending.content },
+                                    { role: 'user', content: pending },
                                     { role: 'assistant', content: responseContent }
                                   ];
                                   
                                   return (
-                                    <Message key={`assistant-${pending.id}`} role="assistant" content={responseContent}>
+                                    <Message key={`assistant-${chat.id()}`} role="assistant" content={responseContent}>
                                       {(assistantMsg) => {
                                         console.log(`[App] Assistant message created, saving and sending...`);
-                                        console.log(`[App] handlerId=${chat.id()}, messageId=${pending.id}`);
+                                        console.log(`[App] handlerId=${chat.id()}`);
                                         return (
                                           <>
                                             <SaveMessages
@@ -96,7 +98,6 @@ export function App() {
                                             />
                                             <SendResponse
                                               handlerId={chat.id()}
-                                              messageId={pending.id}
                                               content={responseContent}
                                             />
                                           </>
