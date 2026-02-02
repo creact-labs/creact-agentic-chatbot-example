@@ -21,9 +21,8 @@
   "author": "Daniel Coutinho Ribeiro <dcoutinho.96@gmail.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@creact-labs/creact": "^0.2.8",
+    "@creact-labs/creact": "^0.2.15",
     "dotenv": "^17.2.3",
-    "duck-duck-scrape": "^2.2.7",
     "express": "^5.2.1",
     "openai": "^6.17.0",
     "playwright": "^1.40.0"

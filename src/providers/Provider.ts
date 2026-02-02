@@ -11,8 +11,6 @@ import {
   handleChatModel,
   handleTool,
   handleMessage,
-  handleConversation,
-  handleAddToConversation,
 } from './handlers';
 
 export class Provider extends EventEmitter implements IProvider {
@@ -45,12 +43,6 @@ export class Provider extends EventEmitter implements IProvider {
           break;
         case 'Message':
           handleMessage(node);
-          break;
-        case 'Conversation':
-          handleConversation(node);
-          break;
-        case 'AddToConversation':
-          handleAddToConversation(node, this);
           break;
       }
     }
