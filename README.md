@@ -1,4 +1,7 @@
+
 # creact-agentic-chatbot-example
+
+** this project use old 0.2.x version go to [Demo](https://github.com/creact-labs/ai-powered-aws-website-generator) for a updated demo
 
 A chat agent built with [CReact](https://github.com/creact-labs/creact).
 
